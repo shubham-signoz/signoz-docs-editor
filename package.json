@@ -1,0 +1,53 @@
+{
+  "name": "signoz-doc-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.js",
+    "start": "concurrently \"npm run server\" \"npm run dev\"",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest --pool=threads --poolOptions.threads.maxThreads=1 --poolOptions.threads.minThreads=1",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/lang-markdown": "^6.3.0",
+    "@mdx-js/mdx": "^3.0.1",
+    "@mdxeditor/editor": "^3.52.3",
+    "codemirror": "^6.0.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "fuse.js": "^7.0.0",
+    "gray-matter": "^4.0.3",
+    "lucide-react": "^0.563.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-medium-image-zoom": "^5.4.0",
+    "react-split": "^2.0.14",
+    "sucrase": "^3.35.1",
+    "ts-morph": "^23.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.1",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}

@@ -1,0 +1,245 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Custom scrollbar for dark mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: theme('colors.signoz.bg.base');
+}
+
+::-webkit-scrollbar-thumb {
+  background: theme('colors.signoz.text.muted');
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.signoz.text.secondary');
+}
+
+/* MDX Editor dark theme overrides */
+.rich-preview-pane {
+  --accentColor: theme('colors.signoz.primary');
+  --accentColorLighter: rgba(78, 116, 248, 0.2);
+  --baseTextColor: theme('colors.signoz.text.primary');
+  --baseBgColor: theme('colors.signoz.bg.ink');
+  --secondaryBgColor: theme('colors.signoz.bg.elevated');
+  --borderColor: theme('colors.signoz.bg.surface');
+}
+
+.rich-preview-pane .mdxeditor {
+  background: theme('colors.signoz.bg.ink');
+  color: theme('colors.signoz.text.primary');
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.rich-preview-pane [data-radix-popper-content-wrapper] {
+  z-index: 100 !important;
+}
+
+.rich-preview-pane .mdxeditor-toolbar {
+  background: theme('colors.signoz.bg.elevated');
+  border-bottom: 1px solid theme('colors.signoz.bg.surface');
+  flex-shrink: 0;
+}
+
+.rich-preview-pane .mdxeditor-toolbar button {
+  color: theme('colors.signoz.text.secondary');
+}
+
+.rich-preview-pane .mdxeditor-toolbar button:hover {
+  background: theme('colors.signoz.bg.surface');
+  color: theme('colors.signoz.text.primary');
+}
+
+.rich-preview-pane .mdxeditor-toolbar button[data-state="on"] {
+  background: theme('colors.signoz.primary');
+  color: white;
+}
+
+.rich-preview-pane .mdxeditor-root-contenteditable {
+  flex: 1;
+  overflow: auto;
+}
+
+.rich-preview-pane .mdxeditor-root-contenteditable > div {
+  min-height: 100%;
+}
+
+/* Code block styling */
+.rich-preview-pane pre {
+  background: theme('colors.signoz.bg.base') !important;
+  border: 1px solid theme('colors.signoz.bg.surface');
+  border-radius: 0.5rem;
+}
+
+.rich-preview-pane code {
+  background: theme('colors.signoz.bg.surface');
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.875em;
+}
+
+.rich-preview-pane pre code {
+  background: transparent;
+  padding: 0;
+}
+
+/* Headings */
+.rich-preview-pane h1 {
+  color: white;
+  font-weight: 700;
+  font-size: 2em;
+  margin-top: 0;
+  margin-bottom: 0.8em;
+}
+
+.rich-preview-pane h2 {
+  color: white;
+  font-weight: 600;
+  font-size: 1.5em;
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+}
+
+.rich-preview-pane h3 {
+  color: white;
+  font-weight: 600;
+  font-size: 1.25em;
+  margin-top: 1.3em;
+  margin-bottom: 0.6em;
+}
+
+/* Links */
+.rich-preview-pane a {
+  color: theme('colors.signoz.primary');
+  text-decoration: underline;
+}
+
+/* Blockquotes */
+.rich-preview-pane blockquote {
+  border-left: 4px solid theme('colors.signoz.primary');
+  padding-left: 1em;
+  color: theme('colors.signoz.text.secondary');
+  font-style: italic;
+}
+
+/* Tables */
+.rich-preview-pane table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rich-preview-pane th {
+  background: theme('colors.signoz.bg.elevated');
+  color: white;
+  font-weight: 600;
+  padding: 0.75em;
+  border-bottom: 2px solid theme('colors.signoz.bg.surface');
+  text-align: left;
+}
+
+.rich-preview-pane td {
+  padding: 0.75em;
+  border-bottom: 1px solid theme('colors.signoz.bg.surface');
+}
+
+/* Lists */
+.rich-preview-pane ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
+
+.rich-preview-pane ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+
+/* Dropdown menus and selects - force dark theme */
+.rich-preview-pane [data-radix-menu-content],
+.rich-preview-pane [data-radix-select-content],
+.rich-preview-pane [data-radix-popper-content-wrapper] > div,
+.rich-preview-pane select,
+.rich-preview-pane [role="listbox"] {
+  background: theme('colors.signoz.bg.elevated') !important;
+  background-color: theme('colors.signoz.bg.elevated') !important;
+  border: 1px solid theme('colors.signoz.bg.surface') !important;
+  color: theme('colors.signoz.text.primary') !important;
+}
+
+.rich-preview-pane [data-radix-menu-item],
+.rich-preview-pane [data-radix-select-item],
+.rich-preview-pane [role="option"] {
+  color: theme('colors.signoz.text.primary') !important;
+  background: transparent !important;
+}
+
+.rich-preview-pane [data-radix-menu-item]:hover,
+.rich-preview-pane [data-radix-menu-item][data-highlighted],
+.rich-preview-pane [data-radix-select-item]:hover,
+.rich-preview-pane [data-radix-select-item][data-highlighted],
+.rich-preview-pane [role="option"]:hover,
+.rich-preview-pane [role="option"][data-highlighted] {
+  background: theme('colors.signoz.bg.surface') !important;
+}
+
+/* Select trigger button */
+.rich-preview-pane [data-radix-select-trigger],
+.rich-preview-pane button[class*="selectTrigger"],
+.rich-preview-pane .mdxeditor-toolbar select,
+.rich-preview-pane .mdxeditor-select-trigger {
+  background: theme('colors.signoz.bg.surface') !important;
+  color: theme('colors.signoz.text.primary') !important;
+  border: 1px solid theme('colors.signoz.bg.elevated') !important;
+}
+
+/* All toolbar buttons and inputs */
+.rich-preview-pane .mdxeditor-toolbar * {
+  color: inherit;
+}
+
+/* Popover content (for link dialogs etc) */
+.rich-preview-pane [data-radix-popover-content] {
+  background: theme('colors.signoz.bg.elevated') !important;
+  border: 1px solid theme('colors.signoz.bg.surface') !important;
+  color: theme('colors.signoz.text.primary') !important;
+}
+
+.rich-preview-pane input,
+.rich-preview-pane textarea {
+  background: theme('colors.signoz.bg.surface') !important;
+  color: theme('colors.signoz.text.primary') !important;
+  border: 1px solid theme('colors.signoz.bg.elevated') !important;
+}
+
+/* Dialog overlays */
+.rich-preview-pane [data-radix-dialog-content] {
+  background: theme('colors.signoz.bg.elevated') !important;
+  color: theme('colors.signoz.text.primary') !important;
+}

@@ -47,6 +47,26 @@ signoz/
 
 The backend reads docs from `../signoz.io/data/docs` unless you override it with environment variables.
 
+## Environment variables
+
+The backend process reads these variables:
+
+- `SIGNOZ_DIR` (optional)
+  - default: local `../signoz.io` relative to `doc-editor`
+  - points to your local `signoz.io` checkout
+- `DOCS_PATH` (optional)
+  - default: `data/docs`
+  - path under `SIGNOZ_DIR` where docs are read from
+- `PORT` (optional)
+  - default: `3001`
+  - port used by the local Express API server
+
+Run by prefixing variables directly:
+
+```bash
+SIGNOZ_DIR=/abs/path/to/signoz DOCS_PATH=data/docs PORT=4001 npm run server
+```
+
 ## Requirements
 
 - Node.js `20` via `.nvmrc`

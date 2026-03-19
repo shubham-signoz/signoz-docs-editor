@@ -14,7 +14,7 @@ const app = express()
 app.use(cors())
 app.use(express.json({ limit: '10mb' }))
 
-const DEFAULT_SIGNOZ_DIR = path.resolve(__dirname, '../signoz.io')
+const DEFAULT_SIGNOZ_DIR = process.cwd()
 const SIGNOZ_DIR = process.env.SIGNOZ_DIR || DEFAULT_SIGNOZ_DIR
 const DOCS_PATH = process.env.DOCS_PATH || 'data/docs'
 const PORT = process.env.PORT || 3001

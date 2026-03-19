@@ -1,6 +1,12 @@
 import { Plugin } from 'vite'
 import * as path from 'path'
 import * as fs from 'fs'
+import { createRequire, builtinModules } from 'node:module'
+
+const nodeBuiltins = new Set([
+  ...builtinModules,
+  ...builtinModules.map(m => `node:${m}`),
+])
 
 /**
  * Vite plugin that resolves @/ imports based on the importer's context.
@@ -15,6 +21,19 @@ export function contextAwareResolver(signozDir: string, localSrcDir: string): Pl
     'shims',
     'signoz-allowed-image-domains.ts'
   )
+
+  // Check if a package is resolvable from doc-editor's own context.
+  // If so, Vite's pre-bundler already handles it — no need to fallback to signoz.io.
+  const localRequire = createRequire(path.join(path.dirname(localSrcDir), 'package.json'))
+
+  function isAvailableLocally(source: string): boolean {
+    try {
+      localRequire.resolve(source)
+      return true
+    } catch {
+      return false
+    }
+  }
 
   const signozAliases: Record<string, string> = {
     '@/components': path.join(signozDir, 'components'),
@@ -39,6 +58,8 @@ export function contextAwareResolver(signozDir: string, localSrcDir: string): Pl
   function isSignozFile(filePath: string): boolean {
     const normalized = path.normalize(filePath)
     return normalized.startsWith(signozDirNormalized)
+      && !normalized.includes('node_modules')
+      && !normalized.startsWith(localSrcNormalized)
   }
 
   function tryResolve(basePath: string, importPath: string): string | null {
@@ -69,7 +90,7 @@ export function contextAwareResolver(signozDir: string, localSrcDir: string): Pl
     name: 'context-aware-resolver',
     enforce: 'pre',
 
-    resolveId(source, importer) {
+    async resolveId(source, importer, options) {
       if (!importer) return null
 
       if (
@@ -106,6 +127,20 @@ export function contextAwareResolver(signozDir: string, localSrcDir: string): Pl
             const resolved = tryResolve(targetDir, rest)
             if (resolved) return resolved
           }
+        }
+
+        // Fallback: for bare imports not found in doc-editor's node_modules,
+        // re-resolve from a fake importer inside signoz.io so Vite's internal
+        // resolver searches signoz.io's node_modules and properly pre-bundles CJS deps
+        if (
+          !source.startsWith('.') &&
+          !source.startsWith('/') &&
+          !nodeBuiltins.has(source) &&
+          !isAvailableLocally(source)
+        ) {
+          const fakeImporter = path.join(signozDir, '__resolve_stub__.js')
+          const result = await this.resolve(source, fakeImporter, { ...options, skipSelf: true })
+          if (result) return result
         }
       }
 

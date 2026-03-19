@@ -1,0 +1,26 @@
+# Skip local/private repo scaffolding
+.claude/
+.playwright-mcp/
+PLAN.md
+HANDOFF.md
+AGENTS.md
+dist/
+
+# Exclude docs and contributor-only metadata
+*.md
+!README.md
+
+# Tooling/dev metadata
+.github/
+.vscode/
+
+# Ignore all tests
+src/__tests__/
+src/components/__tests__/
+src/discovery/__tests__/
+src/hooks/__tests__/
+src/utils/__tests__/
+src/**/__tests__/
+
+# Test-only setup/config
+src/test-setup.ts

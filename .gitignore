@@ -3,9 +3,19 @@ dist/
 coverage/
 .vite/
 .playwright-mcp/
+.claude/
 
 .DS_Store
 Thumbs.db
+
+# Local repo scaffolding and tooling
+.npm/
+.cache/
+.parcel-cache/
+.eslintcache
+playwright-report/
+test-results/
+tmp/
 
 *.log
 npm-debug.log*

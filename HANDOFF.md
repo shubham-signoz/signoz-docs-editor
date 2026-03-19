@@ -8,6 +8,8 @@
 - `npm test -- --run` passes.
 - `npm run build` passes.
 - Test execution remains single-threaded via the `package.json` Vitest pool settings to avoid the earlier worker-stall behavior in this environment.
+- Packaging prep is in progress for npm distribution (`signoz-docs-editor`), including a default-CWD repo strategy and CLI entrypoint.
+- `signoz.io` default path detection was aligned in both `server.js` and `vite.config.ts`.
 
 ## What Has Been Done
 
@@ -62,6 +64,10 @@
 - Updated `server.js` to use a portable repo-local default `SIGNOZ_DIR` and a boundary-safe path check for file read/write APIs.
 - Updated `vite.config.ts` to use the same portable repo-local `SIGNOZ_DIR` default.
 - Added repo-local static asset serving for `/img/*` and `/svgs/*` from `../signoz.io/public`, with a Vite dev proxy to the local API server so images render without pushing those assets through the preview bundle.
+- Added npm package entrypoint and publish readiness:
+  - binary CLI command `signoz-docs-editor`
+  - default-`cwd` runtime behavior for `SIGNOZ_DIR`
+  - `files` whitelist and runtime dependency promotion (`vite`, `@vitejs/plugin-react`) for global/npx installs
 - Updated `src/components/Editor.tsx` to add a lightweight draggable divider between source and preview on desktop, with bounded split ratios and preview overflow constraints so resizing does not introduce horizontal pane scrolling.
 - Updated `src/components/Editor.tsx` and `src/components/CodePane.tsx` so each open tab keeps its own draft, dirty state, and cursor offset, and switching tabs restores that per-file editor state instead of sharing one global source/cursor state.
 - Rewrote `src/__tests__/preview-rendering.test.tsx` to test the actual `PreviewPane` contract instead of repeatedly running the full MDX compiler. The suite now mocks `compileMDX`, uses direct `findBy*` assertions instead of blanket `waitFor(...)`, and covers the component-owned bug classes: empty-state short-circuiting, loading UI, compiler argument wiring, successful render, error render, and stale async compilation cancellation.
@@ -74,6 +80,7 @@
 ## Validation History
 - `npm test -- --run` passes.
 - `npm run build` passes.
+- `npm start`/`npm exec` behavior and binary entrypoint wiring were implemented but not yet validated here.
 - Existing build output still includes the non-blocking chunk-size warning and the `crypto` browser-externalization warning from the local `signoz.io` import surface.
 
 ## Files Added During This Work

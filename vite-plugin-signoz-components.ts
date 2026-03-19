@@ -30,25 +30,37 @@ export function signozComponentsPlugin(signozDir: string): Plugin {
 
         const signozComponentsDir = path.join(signozDir, 'components')
 
-        // Generate import statements with full paths
-        const imports = components.map((comp, i) => {
+        // Generate dynamic imports with per-component error isolation.
+        // If a component fails to import (e.g. missing dependency like lucide-react),
+        // only that component is unavailable — the rest still load successfully.
+        const entries = components.map((comp) => {
           const fullPath = path.join(signozComponentsDir, comp.resolvedPath as string)
-          return `import Component${i} from ${JSON.stringify(fullPath)}`
+          return `  [${JSON.stringify(comp.name)}, () => import(${JSON.stringify(fullPath)})],`
         }).join('\n')
 
-        // Generate the export object
-        const exports = components.map((comp, i) => {
-          return `  ${JSON.stringify(comp.name)}: Component${i}`
-        }).join(',\n')
-
         return `
-${imports}
+const componentLoaders = [
+${entries}
+];
 
-export const signozComponents = {
-${exports}
+export async function loadSignozComponents() {
+  const result = {};
+  const results = await Promise.allSettled(
+    componentLoaders.map(async ([name, loader]) => {
+      const mod = await loader();
+      return [name, mod.default || mod];
+    })
+  );
+  for (const r of results) {
+    if (r.status === 'fulfilled') {
+      const [name, comp] = r.value;
+      result[name] = comp;
+    } else {
+      console.warn('[signoz-components] Failed to load component:', r.reason?.message || r.reason);
+    }
+  }
+  return result;
 }
-
-export default signozComponents
 `
       }
     },

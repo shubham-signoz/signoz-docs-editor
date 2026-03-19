@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, memo } from 'react'
+import React, { useEffect, useState, useMemo, memo } from 'react'
 import { compileMDX, CompilationResult } from '@/mdx-compiler'
 import { ErrorBoundary } from './ErrorBoundary'
 
@@ -293,7 +293,6 @@ function InsertionWrapper({ children, onInsertClick }: InsertionWrapperProps) {
   if (childArray.length === 0) {
     return (
       <InsertionMarker
-        index={0}
         isHovered={hoveredIndex === 0}
         onHover={() => setHoveredIndex(0)}
         onLeave={() => setHoveredIndex(null)}
@@ -305,7 +304,6 @@ function InsertionWrapper({ children, onInsertClick }: InsertionWrapperProps) {
   return (
     <>
       <InsertionMarker
-        index={0}
         isHovered={hoveredIndex === 0}
         onHover={() => setHoveredIndex(0)}
         onLeave={() => setHoveredIndex(null)}
@@ -315,7 +313,6 @@ function InsertionWrapper({ children, onInsertClick }: InsertionWrapperProps) {
         <React.Fragment key={index}>
           {child}
           <InsertionMarker
-            index={index + 1}
             isHovered={hoveredIndex === index + 1}
             onHover={() => setHoveredIndex(index + 1)}
             onLeave={() => setHoveredIndex(null)}

@@ -2,7 +2,7 @@ import { evaluate } from '@mdx-js/mdx'
 import * as jsxRuntime from 'react/jsx-runtime'
 import { createElement, Fragment, ReactElement } from 'react'
 
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 const IMPORT_STATEMENT_REGEX = /^import\s+(.+?)\s+from\s+['"]([^'"]+)['"]\s*;?\s*$/
 const EXPORT_STATEMENT_REGEX = /^export\s+.+$/
 const LOCAL_MDX_IMPORT_REGEX = /\.mdx?$/i

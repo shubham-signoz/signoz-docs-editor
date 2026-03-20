@@ -60,6 +60,7 @@ export default defineConfig({
       { find: 'next/image', replacement: resolve(__dirname, './src/shims/next-image.tsx') },
       { find: 'next/navigation', replacement: resolve(__dirname, './src/shims/next-navigation.tsx') },
       { find: '@react-stately/flags', replacement: resolve(__dirname, './src/shims/react-stately-flags.ts') },
+      { find: /.*\/Region\/RegionContext/, replacement: resolve(__dirname, './src/shims/region-context.tsx') },
       { find: '@signoz-components', replacement: resolve(SIGNOZ_DIR, 'components') },
       { find: '@signoz-constants', replacement: resolve(SIGNOZ_DIR, 'constants') },
     ],

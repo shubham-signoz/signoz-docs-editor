@@ -9,25 +9,31 @@ interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   quality?: number
   placeholder?: string
   blurDataURL?: string
+  layout?: string
+  loader?: (p: { src: string; width: number; quality?: number }) => string
+  unoptimized?: boolean
 }
 
 /**
  * Next.js Image shim - renders as a regular img tag
  */
 const Image = React.forwardRef<HTMLImageElement, ImageProps>(
-  ({ src, alt, width, height, priority, fill, sizes, quality, placeholder, blurDataURL, loading, ...props }, ref) => {
+  ({ src, alt, width, height, priority, fill, sizes, quality, placeholder, blurDataURL, loading, layout, loader, unoptimized, ...props }, ref) => {
     // Handle fill mode
+    const isResponsive = layout === 'responsive'
     const style: React.CSSProperties = fill
       ? { position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', ...props.style }
-      : props.style || {}
+      : isResponsive
+        ? { width: '100%', height: 'auto', ...props.style }
+        : props.style || {}
 
     return (
       <img
         ref={ref}
         src={src}
         alt={alt}
-        width={fill ? undefined : width}
-        height={fill ? undefined : height}
+        width={fill || isResponsive ? undefined : width}
+        height={fill || isResponsive ? undefined : height}
         loading={priority ? 'eager' : (loading || 'lazy')}
         style={style}
         {...props}

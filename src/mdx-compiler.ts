@@ -1,6 +1,9 @@
 import { evaluate } from '@mdx-js/mdx'
 import * as jsxRuntime from 'react/jsx-runtime'
 import { createElement, Fragment, ReactElement } from 'react'
+import remarkGfm from 'remark-gfm'
+import rehypeSlug from 'rehype-slug'
+import { remarkCleanCodeMeta } from './remark-clean-code-meta'
 
 const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 const IMPORT_STATEMENT_REGEX = /^import\s+(.+?)\s+from\s+['"]([^'"]+)['"]\s*;?\s*$/
@@ -162,17 +165,55 @@ async function loadImportedSource(
   return request
 }
 
+interface PreprocessResult {
+  source: string
+  importedComponentNames: string[]
+  /** Components compiled from .md imports (format: 'md') */
+  mdComponents: Record<string, React.ComponentType>
+}
+
+/**
+ * Compile a .md file separately using format: 'md', which preserves standard
+ * markdown features (autolinks, HTML comments, raw HTML, indented code blocks)
+ * that MDX's parser would reject.
+ */
+async function compileMdAsComponent(
+  content: string
+): Promise<React.ComponentType> {
+  const { frontmatter, content: body } = extractLeadingFrontmatter(content)
+  const renderable = injectFrontmatterTitleIfMissing(body, frontmatter)
+
+  const { default: MdContent } = await evaluate(renderable, {
+    Fragment,
+    jsx: jsxRuntime.jsx,
+    jsxs: jsxRuntime.jsxs,
+    development: false,
+    format: 'md',
+    remarkPlugins: [remarkGfm, remarkCleanCodeMeta],
+    rehypePlugins: [rehypeSlug],
+  })
+
+  return MdContent as React.ComponentType
+}
+
+function isPlainMarkdown(importPath: string): boolean {
+  return importPath.endsWith('.md') && !importPath.endsWith('.mdx')
+}
+
 async function preprocessMDXSource(
   source: string,
   sourcePath?: string,
   seenPaths: Set<string> = new Set(),
   options?: CompileMDXOptions
-): Promise<{ source: string; importedComponentNames: string[] }> {
+): Promise<PreprocessResult> {
   const { frontmatter, content } = extractLeadingFrontmatter(source)
   const renderableContent = injectFrontmatterTitleIfMissing(content, frontmatter)
   const lines = renderableContent.split('\n')
   const transformedLines: string[] = []
-  const localImportPromises: Array<Promise<{ name: string; source: string } | null>> = []
+  // .mdx imports: inline the raw text (MDX-compatible)
+  const mdxImportPromises: Array<Promise<{ name: string; source: string } | null>> = []
+  // .md imports: compile separately with format: 'md'
+  const mdImportPromises: Array<Promise<{ name: string; component: React.ComponentType } | null>> = []
   const importedComponentNames = new Set<string>()
   let inCodeFence = false
 
@@ -196,27 +237,47 @@ async function preprocessMDXSource(
         }
 
         if (sourcePath && importName && isLocalMdxImport(importPath)) {
-          localImportPromises.push((async () => {
-            const resolvedImport = await loadImportedSource(sourcePath, importPath, options)
-            if (!resolvedImport || seenPaths.has(resolvedImport.path)) {
-              return null
-            }
+          if (isPlainMarkdown(importPath)) {
+            // .md imports: compile separately as markdown so autolinks,
+            // HTML comments, raw HTML, etc. are handled correctly
+            mdImportPromises.push((async () => {
+              const resolvedImport = await loadImportedSource(sourcePath, importPath, options)
+              if (!resolvedImport || seenPaths.has(resolvedImport.path)) {
+                return null
+              }
 
-            const nestedSeenPaths = new Set(seenPaths)
-            nestedSeenPaths.add(resolvedImport.path)
+              try {
+                const component = await compileMdAsComponent(resolvedImport.content)
+                return { name: importName, component }
+              } catch (err) {
+                console.warn(`[md-import] Failed to compile ${importPath}:`, err instanceof Error ? err.message : err)
+                return null
+              }
+            })())
+          } else {
+            // .mdx imports: inline the preprocessed source (existing behavior)
+            mdxImportPromises.push((async () => {
+              const resolvedImport = await loadImportedSource(sourcePath, importPath, options)
+              if (!resolvedImport || seenPaths.has(resolvedImport.path)) {
+                return null
+              }
 
-            const nestedResult = await preprocessMDXSource(
-              resolvedImport.content,
-              resolvedImport.path,
-              nestedSeenPaths,
-              options
-            )
+              const nestedSeenPaths = new Set(seenPaths)
+              nestedSeenPaths.add(resolvedImport.path)
 
-            return {
-              name: importName,
-              source: nestedResult.source,
-            }
-          })())
+              const nestedResult = await preprocessMDXSource(
+                resolvedImport.content,
+                resolvedImport.path,
+                nestedSeenPaths,
+                options
+              )
+
+              return {
+                name: importName,
+                source: nestedResult.source,
+              }
+            })())
+          }
         }
 
         continue
@@ -231,13 +292,11 @@ async function preprocessMDXSource(
   }
 
   let transformedSource = transformedLines.join('\n')
-  const resolvedImports = await Promise.all(localImportPromises)
 
-  for (const resolvedImport of resolvedImports) {
-    if (!resolvedImport) {
-      continue
-    }
-
+  // Inline resolved .mdx imports (text replacement)
+  const resolvedMdxImports = await Promise.all(mdxImportPromises)
+  for (const resolvedImport of resolvedMdxImports) {
+    if (!resolvedImport) continue
     transformedSource = replaceImportedComponentUsage(
       transformedSource,
       resolvedImport.name,
@@ -245,9 +304,18 @@ async function preprocessMDXSource(
     )
   }
 
+  // Collect compiled .md components (passed to evaluate() as components)
+  const mdComponents: Record<string, React.ComponentType> = {}
+  const resolvedMdImports = await Promise.all(mdImportPromises)
+  for (const resolvedImport of resolvedMdImports) {
+    if (!resolvedImport) continue
+    mdComponents[resolvedImport.name] = resolvedImport.component
+  }
+
   return {
     source: transformedSource,
     importedComponentNames: Array.from(importedComponentNames),
+    mdComponents,
   }
 }
 
@@ -266,7 +334,9 @@ export async function compileMDX(
 
   try {
     const preprocessed = await preprocessMDXSource(source, sourcePath, new Set(), options)
-    const compatibilityComponents = { ...components }
+    const compatibilityComponents: Record<string, React.ComponentType<unknown>> = {
+      ...components,
+    }
 
     for (const componentName of preprocessed.importedComponentNames) {
       if (!(componentName in compatibilityComponents)) {
@@ -274,11 +344,23 @@ export async function compileMDX(
       }
     }
 
+    // Wrap .md components to inherit the full component map (a, pre, table overrides etc.)
+    // MDX compiled output accepts { components } as a prop for element overrides.
+    for (const [name, MdComp] of Object.entries(preprocessed.mdComponents)) {
+      const WrappedMd = () => createElement(
+        MdComp as React.ComponentType<{ components?: Record<string, unknown> }>,
+        { components: compatibilityComponents }
+      )
+      compatibilityComponents[name] = WrappedMd
+    }
+
     const { default: MDXContent } = await evaluate(preprocessed.source, {
       Fragment,
       jsx: jsxRuntime.jsx,
       jsxs: jsxRuntime.jsxs,
       development: false,
+      remarkPlugins: [remarkGfm, remarkCleanCodeMeta],
+      rehypePlugins: [rehypeSlug],
     })
 
     const content = createElement(MDXContent, { components: compatibilityComponents })

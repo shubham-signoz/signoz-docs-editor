@@ -1,5 +1,6 @@
 import { ThemeProvider } from '@/contexts'
 import { Editor } from '@/components'
+import { RegionProvider } from '@/shims/region-context'
 
 /**
  * App - main application shell.
@@ -8,7 +9,9 @@ import { Editor } from '@/components'
 function App() {
   return (
     <ThemeProvider>
-      <Editor />
+      <RegionProvider>
+        <Editor />
+      </RegionProvider>
     </ThemeProvider>
   )
 }

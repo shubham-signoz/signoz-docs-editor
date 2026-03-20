@@ -1,6 +1,6 @@
 {
   "name": "signoz-docs-editor",
-  "version": "0.2.8",
+  "version": "0.2.10",
   "private": false,
   "type": "module",
   "license": "MIT",
@@ -25,6 +25,7 @@
     "src/main.tsx",
     "src/index.css",
     "src/mdx-compiler.ts",
+    "src/remark-clean-code-meta.ts",
     "src/virtual-modules.d.ts",
     "src/vite-env.d.ts",
     "src/contexts/*.ts",
